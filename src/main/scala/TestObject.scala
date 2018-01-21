@@ -10,21 +10,26 @@ object TestObject {
   type Likes = Int
   case class Tweet(id: BigInt, text: String, hashTags: Array[Tag], likes: Likes)
 
-  val conf = new SparkConf()
+  // Settings
+  val CLUSTER_COUNT = 5
+  val MAX_ITERATION = 20
+  val MEANS_DELTA_THRESHOLD = 1
+
+  val sc: SparkContext = new SparkContext(
+    new SparkConf()
     .setAppName("Twitter Example")
-    .setMaster("local");
+    .setMaster("local")
+  )
 
-  val sc: SparkContext = new SparkContext(this.conf)
 
-
-  // Parse tweets ---
+  // Parse tweets
   def parseTweet(tweet: String): Tweet = {
-    var id = ""; var text = ""; var likes = 0;
-    var hashtags: Array[String] = new Array(0);
+    var id = ""; var text = ""; var likes = 0
+    var hashtags: Array[String] = new Array(0)
 
     try {
       implicit val formats = DefaultFormats
-      val t = parse(tweet);
+      val t = parse(tweet)
 
       // Extract the id
       try { id = (t \ "id_str").extract[String]; }
@@ -55,36 +60,76 @@ object TestObject {
       }
 
       // Return tweet object
-      return new Tweet(BigInt(id), text, hashtags, likes);
+      Tweet(BigInt(id), text, hashtags, likes);
     } catch {
-      case e: Exception => {
-        return null
-      }
+      case e: Exception =>  null
     }
   }
 
-  // Pair hashtags and likes ---
+
+  // Pair hashtags and likes
   def toPairRdd(tweets: RDD[Tweet]): RDD[(Tag, Likes)] = {
-    return tweets
-        .filter(_ != null)
-        .filter(_.hashTags != null)
-        .filter(_.hashTags.length > 0)
-        .flatMap(t => {
-          t.hashTags.map((_, t.likes))
-        })
+    tweets
+      .filter(_ != null)
+      .filter(_.hashTags != null)
+      .filter(_.hashTags.length > 0)
+      .flatMap(t => {
+        t.hashTags.map((_, t.likes))
+      })
   }
 
-  // Sum up likes of the same hashtags ---
+
+  // Sum up likes of the same hashtags
   def toScores(pairRDD: RDD[(Tag, Likes)]): RDD[(Tag, Int)] = {
-    return pairRDD.reduceByKey(_ + _)
+    pairRDD.reduceByKey(_ + _)
   }
 
-  // Find top 20 most popular hashtags ---
+
+  // Find top 20 most popular hashtags
   def mostTrending(scores: RDD[(Tag, Int)]): Array[Tag] = {
-    return scores
-        .sortBy(_._2, false)
-        .keys
-        .take(20);
+    scores
+      .sortBy(_._2, false)
+      .keys
+      .take(20)
+  }
+
+
+  // Cluster tags by the likes
+  def trendingSets(pairRDD: RDD[(Tag, Likes)]): Map[Tag, RDD[Likes]] = {
+    // TODO: sort by trending
+    pairRDD
+      .groupByKey()
+      .mapValues(v => { this.sc.parallelize(v.toList) })
+      .take(20)
+      .toMap
+  }
+
+
+  // Compute initial values of means
+  def sampleVector(likes: RDD[Likes], k: Int): Array[Int] = {
+    null
+  }
+
+
+  // K-means algorithm
+  def kmeans(means: Array[Int], vector: RDD[Likes]): Array[(Int, Int)] = {
+    this.kmeansAcc(means, null, vector, 0)
+  }
+  def kmeansAcc(means: Array[Int], oldMeans: Array[Int], vector: RDD[Likes], iteration: Int): Array[(Int, Int)] = {
+    // Base case - stop condition holds - end recursion and return clusters
+    if (false){
+      null
+    }
+    // Compute clusters
+    else {
+      null
+    }
+  }
+
+
+  // Pretty print
+  def printResults(tag: Tag, meansAndCount: Array[(Int, Int)]) = {
+    null
   }
 
 
@@ -107,11 +152,18 @@ object TestObject {
     val scores = this.toScores(pairRDD)
 
     // 20 op hashtags
-    val trending = mostTrending(pairRDD)
+    val trending = mostTrending(scores)
 
     // --- Task 2 --- //
 
+    // Map each hashtag to the likes they got, take 20
+    val sets = trendingSets(pairRDD)
 
+    // Run kmeans algorithm
+    for((tag, rdd) <- sets) {
+      val meansAndCount = this.kmeans(this.sampleVector(rdd, this.CLUSTER_COUNT), rdd)
+      this.printResults(tag, meansAndCount)
+    }
 
     this.sc.stop()
   }
