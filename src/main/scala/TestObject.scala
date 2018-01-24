@@ -198,7 +198,7 @@ object TestObject {
       println("Samples")
       println(sample.mkString(", "))
 
-      val meansAndCount = this.kmeans(sample, likes)
+      val meansAndCount = this.kmeans(sample, likesTmp)
 
       println("MeansAndCount")
       println(meansAndCount.mkString("\n"))
