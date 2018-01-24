@@ -5,6 +5,7 @@ import org.json4s.jackson.JsonMethods._
 import org.apache.spark.sql.functions._
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
+import scala.util.Random
 
 object TestObject {
   type Tag = String
@@ -108,16 +109,47 @@ object TestObject {
 
   // K-means algorithm
   def kmeans(means: Array[Int], vector: RDD[Likes]): Array[(Int, Int)] = {
-    this.kmeansAcc(means, null, vector, 0)
+    this.kmeansAcc(means, null, null, vector, 0)
   }
-  def kmeansAcc(means: Array[Int], oldMeans: Array[Int], vector: RDD[Likes], iteration: Int): Array[(Int, Int)] = {
-    // Base case - stop condition holds - end recursion and return clusters
-    if (false){
-      null
-    }
-    // Compute clusters
+
+  // accumulator for the recursive k-means algorithm
+  def kmeansAcc(means: Array[Int], oldMeans: Array[Int], clusters: Array[(Int, Int)], vector: RDD[Likes], iteration: Int): Array[(Int, Int)] = {
+
+    // TODO: calculate delta x for means
+
+    // Base case: stop condition holds - end recursion and return clusters
+    if (iteration > this.MAX_ITERATION){ clusters }
+
+    // Calculate new means
     else {
-      null
+
+      // Calculate clusters (<cluster>, <value>)
+      // Find the closest mean for each vector, and pair them up
+      val newClusters = vector.map(v => {
+        var closestMean = -1
+        var closestDistance = -1
+        means.foreach(mean => {
+          var distance = Math.abs(mean - v)
+          if (distance < closestDistance || closestDistance == -1){
+            closestDistance = distance
+            closestMean = mean
+          }
+        })
+        (closestMean, v)
+      })
+
+      // Calculate new means based on the new clusters
+      val newMeans = newClusters
+        // Pair values with 1's to keep count
+        .mapValues { case value => (value, 1) }
+        // Sum up the values and the 1's
+        .reduceByKey { case ((vAcc, cAcc), (v, c)) => (vAcc + v, cAcc + c)}
+        // Divide the sum by the counts to find average
+        .mapValues { case (sum , count) => sum / count }
+        // Extract the values into an array to get the new means
+        .values
+
+      kmeansAcc(newMeans.collect(), means, newClusters.collect(), vector, iteration + 1)
     }
   }
 
@@ -128,6 +160,7 @@ object TestObject {
   }
 
 
+  // **** MAIN ****
   def main(args: Array[String]) {
 
     // Get source file
@@ -156,11 +189,20 @@ object TestObject {
 
     // Run kmeans algorithm
     for((tag, likes) <- sets) {
+
       // TODO: remove this and use the likes above
-      val likesTmp = this.sc.parallelize(Array(99, 58, 84, 28, 46, 69, 11, 16, 19, 3, 54, 40, 50, 20, 42, 74, 16, 95, 72, 11, 35, 52, 27, 84, 48, 88, 2, 49, 82, 3, 39, 22, 85, 2, 39, 16, 65, 61, 12, 19, 38, 85, 32, 1, 92, 67, 81, 79, 34, 38, 17, 7, 52, 46, 6, 82, 84, 41, 56, 21, 80, 58, 33, 73, 100, 19, 22, 99, 67, 43, 79, 77, 32, 0, 82, 87, 11, 23, 16, 87, 26, 44, 32, 82, 10, 57, 96, 79, 96, 45, 80, 74, 94, 58, 68, 91, 66, 17, 23, 58))
+      val likesTmp = this.sc.parallelize(Array(Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100)))
+
       val sample = this.sampleVector(likesTmp, this.CLUSTER_COUNT)
+
+      println("Samples")
       println(sample.mkString(", "))
-      //val meansAndCount = this.kmeans(this.sampleVector(rdd, this.CLUSTER_COUNT), rdd)
+
+      val meansAndCount = this.kmeans(sample, likes)
+
+      println("MeansAndCount")
+      println(meansAndCount.mkString("\n"))
+
       //this.printResults(tag, meansAndCount)
     }
 
