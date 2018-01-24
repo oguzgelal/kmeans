@@ -4,6 +4,7 @@ import org.json4s.{DefaultFormats, MappingException}
 import org.json4s.jackson.JsonMethods._
 import org.apache.spark.sql.functions._
 import org.apache.spark.rdd.RDD
+import org.apache.spark.sql.SparkSession
 
 object TestObject {
   type Tag = String
@@ -39,7 +40,6 @@ object TestObject {
       // Extract tweet text
       try { text = (t \ "text").extract[String]; }
       catch { case e: Exception => (/* do nothing */) }
-      if (text == ""){ return null; }
 
       // Extract hashtags
       try { hashtags = (t \ "entities" \ "hashtags" \ "text").extract[Array[String]]; }
@@ -95,19 +95,14 @@ object TestObject {
 
 
   // Cluster tags by the likes
-  def trendingSets(pairRDD: RDD[(Tag, Likes)]): Map[Tag, RDD[Likes]] = {
-    // TODO: sort by trending
-    pairRDD
-      .groupByKey()
-      .mapValues(v => { this.sc.parallelize(v.toList) })
-      .take(20)
-      .toMap
+  def trendingSets(trends: Array[Tag], pairRDD: RDD[(Tag, Likes)]): Array[(Tag, RDD[Likes])] = {
+    trends.map(h => (h, this.sc.parallelize(pairRDD.lookup(h))))
   }
 
 
-  // Compute initial values of means
-  def sampleVector(likes: RDD[Likes], k: Int): Array[Int] = {
-    null
+  // Take sample from likes to compute initial values of means
+  def sampleVector(likes: RDD[Likes], size: Int): Array[Int] = {
+    likes.distinct.takeSample(false, size)
   }
 
 
@@ -152,17 +147,21 @@ object TestObject {
     val scores = this.toScores(pairRDD)
 
     // 20 op hashtags
-    val trending = mostTrending(scores)
+    val trending = this.mostTrending(scores)
 
     // --- Task 2 --- //
 
     // Map each hashtag to the likes they got, take 20
-    val sets = trendingSets(pairRDD)
+    val sets = this.trendingSets(trending, pairRDD)
 
     // Run kmeans algorithm
-    for((tag, rdd) <- sets) {
-      val meansAndCount = this.kmeans(this.sampleVector(rdd, this.CLUSTER_COUNT), rdd)
-      this.printResults(tag, meansAndCount)
+    for((tag, likes) <- sets) {
+      // TODO: remove this and use the likes above
+      val likesTmp = this.sc.parallelize(Array(99, 58, 84, 28, 46, 69, 11, 16, 19, 3, 54, 40, 50, 20, 42, 74, 16, 95, 72, 11, 35, 52, 27, 84, 48, 88, 2, 49, 82, 3, 39, 22, 85, 2, 39, 16, 65, 61, 12, 19, 38, 85, 32, 1, 92, 67, 81, 79, 34, 38, 17, 7, 52, 46, 6, 82, 84, 41, 56, 21, 80, 58, 33, 73, 100, 19, 22, 99, 67, 43, 79, 77, 32, 0, 82, 87, 11, 23, 16, 87, 26, 44, 32, 82, 10, 57, 96, 79, 96, 45, 80, 74, 94, 58, 68, 91, 66, 17, 23, 58))
+      val sample = this.sampleVector(likesTmp, this.CLUSTER_COUNT)
+      println(sample.mkString(", "))
+      //val meansAndCount = this.kmeans(this.sampleVector(rdd, this.CLUSTER_COUNT), rdd)
+      //this.printResults(tag, meansAndCount)
     }
 
     this.sc.stop()
