@@ -2,6 +2,10 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/TwitterProject-app.iml" filepath="$PROJECT_DIR$/.idea/modules/TwitterProject-app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app.iml" filepath="$PROJECT_DIR$/.idea/modules/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app-build.iml" filepath="$PROJECT_DIR$/.idea/modules/app-build.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/sr-app-build.iml" filepath="$PROJECT_DIR$/.idea/modules/sr-app-build.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/twitterproject.iml" filepath="$PROJECT_DIR$/.idea/modules/twitterproject.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/twitterproject-build.iml" filepath="$PROJECT_DIR$/.idea/modules/twitterproject-build.iml" />
     </modules>

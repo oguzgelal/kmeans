@@ -9,7 +9,7 @@
 		extra-sbtVersion="1.0"
 		conf="provided"
 		confs="compile, runtime, test, provided, optional, compile-internal, runtime-internal, test-internal, plugin, pom, scala-tool"
-		date="20180104142822"/>
+		date="20180126203828"/>
 	<dependencies>
 		<module organisation="org.scala-sbt" name="sbt">
 			<revision name="1.0.4" status="release" pubdate="20171126101500" resolver="sbt-chain" artresolver="sbt-chain" homepage="https://github.com/sbt/sbt" downloaded="false" searched="false" default="false" conf="default, compile, runtime, default(compile), master" position="1">
@@ -180,9 +180,9 @@
 			</revision>
 		</module>
 		<module organisation="com.google.protobuf" name="protobuf-java">
-			<revision name="3.3.1" status="release" pubdate="20170515194637" resolver="public" artresolver="public" homepage="" downloaded="true" searched="true" default="false" conf="master(*), compile, runtime(*), runtime, compile(*), master" position="60">
+			<revision name="3.3.1" status="release" pubdate="20170515194637" resolver="sbt-chain" artresolver="sbt-chain" homepage="" downloaded="false" searched="false" default="false" conf="master(*), compile, runtime(*), runtime, compile(*), master" position="60">
 				<license name="3-Clause BSD License" url="https://opensource.org/licenses/BSD-3-Clause"/>
-				<metadata-artifact status="successful" details="" size="4749" time="100" location="/Users/oguzgelal/.ivy2/cache/com.google.protobuf/protobuf-java/ivy-3.3.1.xml" searched="true" original-local-location="/Users/oguzgelal/.ivy2/cache/com.google.protobuf/protobuf-java/ivy-3.3.1.xml.original" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/com/google/protobuf/protobuf-java/3.3.1/protobuf-java-3.3.1.pom"/>
+				<metadata-artifact status="no" details="" size="5084" time="0" location="/Users/oguzgelal/.ivy2/cache/com.google.protobuf/protobuf-java/ivy-3.3.1.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/com/google/protobuf/protobuf-java/3.3.1/protobuf-java-3.3.1.pom"/>
 				<caller organisation="com.trueaccord.scalapb" name="scalapb-runtime_2.12" conf="compile, runtime" rev="3.3.1" rev-constraint-default="3.3.1" rev-constraint-dynamic="3.3.1" callerrev="0.6.0"/>
 				<artifacts>
 					<artifact name="protobuf-java" type="bundle" ext="jar" status="no" details="" size="1357427" time="0" location="/Users/oguzgelal/.ivy2/cache/com.google.protobuf/protobuf-java/bundles/protobuf-java-3.3.1.jar">
@@ -344,9 +344,9 @@
 			</revision>
 		</module>
 		<module organisation="com.squareup.okhttp3" name="okhttp-urlconnection">
-			<revision name="3.7.0" status="release" pubdate="20170416035521" resolver="public" artresolver="public" homepage="" downloaded="true" searched="true" default="false" conf="master(*), compile, runtime(*), runtime, compile(*), master" position="48">
+			<revision name="3.7.0" status="release" pubdate="20170416035521" resolver="sbt-chain" artresolver="sbt-chain" homepage="" downloaded="false" searched="false" default="false" conf="master(*), compile, runtime(*), runtime, compile(*), master" position="48">
 				<license name="Apache 2.0" url="http://www.apache.org/licenses/LICENSE-2.0.txt"/>
-				<metadata-artifact status="successful" details="" size="1879" time="155" location="/Users/oguzgelal/.ivy2/cache/com.squareup.okhttp3/okhttp-urlconnection/ivy-3.7.0.xml" searched="true" original-local-location="/Users/oguzgelal/.ivy2/cache/com.squareup.okhttp3/okhttp-urlconnection/ivy-3.7.0.xml.original" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/com/squareup/okhttp3/okhttp-urlconnection/3.7.0/okhttp-urlconnection-3.7.0.pom"/>
+				<metadata-artifact status="no" details="" size="5917" time="0" location="/Users/oguzgelal/.ivy2/cache/com.squareup.okhttp3/okhttp-urlconnection/ivy-3.7.0.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/com/squareup/okhttp3/okhttp-urlconnection/3.7.0/okhttp-urlconnection-3.7.0.pom"/>
 				<caller organisation="org.scala-sbt" name="librarymanagement-core_2.12" conf="compile, runtime" rev="3.7.0" rev-constraint-default="3.7.0" rev-constraint-dynamic="3.7.0" callerrev="1.0.4"/>
 				<artifacts>
 					<artifact name="okhttp-urlconnection" type="jar" ext="jar" status="no" details="" size="32607" time="0" location="/Users/oguzgelal/.ivy2/cache/com.squareup.okhttp3/okhttp-urlconnection/jars/okhttp-urlconnection-3.7.0.jar">
@@ -368,9 +368,9 @@
 			</revision>
 		</module>
 		<module organisation="com.squareup.okhttp3" name="okhttp">
-			<revision name="3.7.0" status="release" pubdate="20170416035432" resolver="public" artresolver="public" homepage="" downloaded="true" searched="true" default="false" conf="master(*), compile, runtime(*), master(compile), runtime, compile(*), master" position="46">
+			<revision name="3.7.0" status="release" pubdate="20170416035432" resolver="sbt-chain" artresolver="sbt-chain" homepage="" downloaded="false" searched="false" default="false" conf="master(*), compile, runtime(*), master(compile), runtime, compile(*), master" position="46">
 				<license name="Apache 2.0" url="http://www.apache.org/licenses/LICENSE-2.0.txt"/>
-				<metadata-artifact status="successful" details="" size="1539" time="121" location="/Users/oguzgelal/.ivy2/cache/com.squareup.okhttp3/okhttp/ivy-3.7.0.xml" searched="true" original-local-location="/Users/oguzgelal/.ivy2/cache/com.squareup.okhttp3/okhttp/ivy-3.7.0.xml.original" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/com/squareup/okhttp3/okhttp/3.7.0/okhttp-3.7.0.pom"/>
+				<metadata-artifact status="no" details="" size="5577" time="0" location="/Users/oguzgelal/.ivy2/cache/com.squareup.okhttp3/okhttp/ivy-3.7.0.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/com/squareup/okhttp3/okhttp/3.7.0/okhttp-3.7.0.pom"/>
 				<caller organisation="com.squareup.okhttp3" name="okhttp-urlconnection" conf="compile, runtime" rev="3.7.0" rev-constraint-default="3.7.0" rev-constraint-dynamic="3.7.0" callerrev="3.7.0"/>
 				<caller organisation="com.eed3si9n" name="gigahorse-okhttp_2.12" conf="compile, runtime" rev="3.7.0" rev-constraint-default="3.7.0" rev-constraint-dynamic="3.7.0" callerrev="0.3.0"/>
 				<artifacts>
@@ -381,9 +381,9 @@
 			</revision>
 		</module>
 		<module organisation="com.squareup.okio" name="okio">
-			<revision name="1.12.0" status="release" pubdate="20170412052017" resolver="public" artresolver="public" homepage="" downloaded="true" searched="true" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="47">
+			<revision name="1.12.0" status="release" pubdate="20170412052017" resolver="sbt-chain" artresolver="sbt-chain" homepage="" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="47">
 				<license name="Apache 2.0" url="http://www.apache.org/licenses/LICENSE-2.0.txt"/>
-				<metadata-artifact status="successful" details="" size="1480" time="527" location="/Users/oguzgelal/.ivy2/cache/com.squareup.okio/okio/ivy-1.12.0.xml" searched="true" original-local-location="/Users/oguzgelal/.ivy2/cache/com.squareup.okio/okio/ivy-1.12.0.xml.original" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/com/squareup/okio/okio/1.12.0/okio-1.12.0.pom"/>
+				<metadata-artifact status="no" details="" size="4341" time="0" location="/Users/oguzgelal/.ivy2/cache/com.squareup.okio/okio/ivy-1.12.0.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/com/squareup/okio/okio/1.12.0/okio-1.12.0.pom"/>
 				<caller organisation="com.squareup.okhttp3" name="okhttp" conf="compile, runtime" rev="1.12.0" rev-constraint-default="1.12.0" rev-constraint-dynamic="1.12.0" callerrev="3.7.0"/>
 				<artifacts>
 					<artifact name="okio" type="jar" ext="jar" status="no" details="" size="81088" time="0" location="/Users/oguzgelal/.ivy2/cache/com.squareup.okio/okio/jars/okio-1.12.0.jar">
@@ -765,7 +765,7 @@
 					<artifact name="log4j-core" type="jar" ext="jar" status="no" details="" size="1402925" time="0" location="/Users/oguzgelal/.ivy2/cache/org.apache.logging.log4j/log4j-core/jars/log4j-core-2.8.1.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/org/apache/logging/log4j/log4j-core/2.8.1/log4j-core-2.8.1.jar"/>
 					</artifact>
-					<artifact name="log4j-core" type="test-jar" ext="jar" extra-classifier="tests" status="successful" details="" size="1412295" time="2813" location="/Users/oguzgelal/.ivy2/cache/org.apache.logging.log4j/log4j-core/test-jars/log4j-core-2.8.1-tests.jar">
+					<artifact name="log4j-core" type="test-jar" ext="jar" extra-classifier="tests" status="no" details="" size="1412295" time="0" location="/Users/oguzgelal/.ivy2/cache/org.apache.logging.log4j/log4j-core/test-jars/log4j-core-2.8.1-tests.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/org/apache/logging/log4j/log4j-core/2.8.1/log4j-core-2.8.1-tests.jar"/>
 					</artifact>
 				</artifacts>

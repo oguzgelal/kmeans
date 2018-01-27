@@ -1,10 +1,7 @@
-import org.apache.spark.sql.{DataFrame, SQLContext}
 import org.apache.spark.{SparkConf, SparkContext}
-import org.json4s.{DefaultFormats, MappingException}
+import org.json4s._
 import org.json4s.jackson.JsonMethods._
-import org.apache.spark.sql.functions._
 import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.SparkSession
 import scala.util.Random
 
 object TestObject {
@@ -13,16 +10,24 @@ object TestObject {
   case class Tweet(id: BigInt, text: String, hashTags: Array[Tag], likes: Likes)
 
   // Settings
+  val ISABELLE = false
+
+  var FILE_LOCATION = "/data/twitter/tweets"
+  if (ISABELLE){ FILE_LOCATION = "/data/twitter/tweetsraw" }
+  var SET_MASTER = true
+  if (ISABELLE){ SET_MASTER = false }
+
   val CLUSTER_COUNT = 5
   val MAX_ITERATION = 20
   val MEANS_DELTA_THRESHOLD = 1
 
-  val sc: SparkContext = new SparkContext(
-    new SparkConf()
-    .setAppName("Twitter Example")
-    .setMaster("local")
-  )
+  val conf = new SparkConf()
 
+  conf.setAppName("TwitterProject")
+  if (SET_MASTER) { conf.setMaster("local") }
+  val sc: SparkContext = new SparkContext(conf)
+
+  sc.setLogLevel("ERROR")
 
   // Parse tweets
   def parseTweet(tweet: String): Tweet = {
@@ -90,14 +95,15 @@ object TestObject {
   def mostTrending(scores: RDD[(Tag, Int)]): Array[Tag] = {
     scores
       .sortBy(_._2, false)
-      .keys
       .take(20)
+      .map(_._1)
+
   }
 
 
   // Cluster tags by the likes
   def trendingSets(trends: Array[Tag], pairRDD: RDD[(Tag, Likes)]): Array[(Tag, RDD[Likes])] = {
-    trends.map(h => (h, this.sc.parallelize(pairRDD.lookup(h))))
+    trends.map(h => (h, sc.parallelize(pairRDD.lookup(h))))
   }
 
 
@@ -109,18 +115,41 @@ object TestObject {
 
   // K-means algorithm
   def kmeans(means: Array[Int], vector: RDD[Likes]): Array[(Int, Int)] = {
-    this.kmeansAcc(means, null, null, vector, 0)
+    kmeansAcc(means, null, null, vector, 0)
   }
 
   // accumulator for the recursive k-means algorithm
   def kmeansAcc(means: Array[Int], oldMeans: Array[Int], clusters: Array[(Int, Int)], vector: RDD[Likes], iteration: Int): Array[(Int, Int)] = {
 
-    // TODO: calculate delta x for means
+    // Calculate delta x of the means Trade off:
+    // 1) should I halt if just one means delta x falls under the treshold ? If by chance, one of the sample means
+    // falls into the right location, the algorithm will halt without properly computing other means
+    // 2) should I half if all deta x'es fall under the treshold ? This could potentially cause performance issues, but
+    // there is already max iteration parameter, and also this will generate more accurate results. I'll go with this
+    var meansDeltaTresholdReached = true
+    if (oldMeans != null){
+      (means zip oldMeans).foreach{
+        case (newMean, oldMean) =>
+          if (Math.abs(newMean - oldMean) > MEANS_DELTA_THRESHOLD){
+            meansDeltaTresholdReached = false
+          }
+      }
+    } else {
+      meansDeltaTresholdReached = false
+    }
 
     // Base case: stop condition holds - end recursion and return clusters
-    if (iteration > this.MAX_ITERATION){ clusters }
+    if (meansDeltaTresholdReached || iteration > MAX_ITERATION){
 
-    // Calculate new means
+      // Count number of data points in each cluster (<cluster>, <count>)
+      val pairsRdd = sc.parallelize(clusters)
+      pairsRdd
+        .mapValues{ case value => (value, 1) }
+        .reduceByKey { case ((vAcc, cAcc), (v, c)) => (vAcc + v, cAcc + c)}
+        .mapValues { case (sum , count) => count }
+        .collect()
+    }
+
     else {
 
       // Calculate clusters (<cluster>, <value>)
@@ -156,57 +185,77 @@ object TestObject {
 
   // Pretty print
   def printResults(tag: Tag, meansAndCount: Array[(Int, Int)]) = {
-    null
+    println("_____________________________")
+    println("Tag: " + tag)
+    meansAndCount.foreach{
+      case (mean, count) => {
+        println("Cluster (" + mean + ") -> " + count + " items")
+      }
+    }
   }
 
 
   // **** MAIN ****
   def main(args: Array[String]) {
 
+    println("> reading file...")
+
     // Get source file
-    val source = this.sc.textFile("/data/twitter/tweets")
+    val source = sc.textFile(FILE_LOCATION)
+
+    println("> reading file completed")
+    println("> parsing tweets...")
 
     // Parse tweets into Tweet array
-    val tweets: RDD[Tweet] = source.map(this.parseTweet)
+    val tweets: RDD[Tweet] = source.map(parseTweet)
+
+    println("> parsing tweets completed")
+    println("> generating pairrdd...")
 
     // Pair hashtags and like counts
     // This value is cached, because we don't want to
     // recompute it for Task 1 and Task 2 separately
-    val pairRDD = this.toPairRdd(tweets).cache()
+    val pairRDD = toPairRdd(tweets).cache()
+
+    println("> generating pairrdd completed")
 
     // --- Task 1 --- //
 
+    println("> pairing scores...")
+
     // Sum up likes for each distinct keyword
-    val scores = this.toScores(pairRDD)
+    val scores = toScores(pairRDD)
+
+    println("> pairing scores completed")
+    println("> finding top tweets...")
 
     // 20 op hashtags
-    val trending = this.mostTrending(scores)
+    val trending = mostTrending(scores)
+
+    println("> finding top tweets completed")
 
     // --- Task 2 --- //
 
+    println("> finding trending sets...")
+
     // Map each hashtag to the likes they got, take 20
-    val sets = this.trendingSets(trending, pairRDD)
+    val sets = trendingSets(trending, pairRDD)
+
+    println("> finding trending sets completed")
+    println("> clustering...")
 
     // Run kmeans algorithm
     for((tag, likes) <- sets) {
-
-      // TODO: remove this and use the likes above
-      val likesTmp = this.sc.parallelize(Array(Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100)))
-
-      val sample = this.sampleVector(likesTmp, this.CLUSTER_COUNT)
-
-      println("Samples")
-      println(sample.mkString(", "))
-
-      val meansAndCount = this.kmeans(sample, likesTmp)
-
-      println("MeansAndCount")
-      println(meansAndCount.mkString("\n"))
-
-      //this.printResults(tag, meansAndCount)
+      // I will use this instead of the real likes
+      val likesTmp = sc.parallelize(Array(Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100), Random.nextInt(100)))
+      val sample = sampleVector(likesTmp, CLUSTER_COUNT)
+      val meansAndCount = kmeans(sample, likesTmp)
+      printResults(tag, meansAndCount)
     }
 
-    this.sc.stop()
+    println("> clustering completed")
+
+    sc.stop()
   }
 
 
